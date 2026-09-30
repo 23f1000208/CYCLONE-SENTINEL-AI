@@ -6,6 +6,8 @@ COPY frontend/package*.json ./
 RUN npm ci
 
 COPY frontend/ ./
+# Ensure public directory exists even if not committed with files
+RUN mkdir -p /app/frontend/public
 RUN npm run build
 
 # Stage 2: Production Unified Full-Stack Runner
@@ -31,10 +33,13 @@ RUN pip install --no-cache-dir -r ./backend/requirements.txt
 COPY backend ./backend
 ENV PYTHONPATH=/app/backend
 
+# Pre-create frontend directory
+RUN mkdir -p /app/frontend/public
+
 # Copy Built Next.js Frontend Assets
 COPY --from=frontend-builder /app/frontend/package*.json ./frontend/
 COPY --from=frontend-builder /app/frontend/.next ./frontend/.next
-COPY --from=frontend-builder /app/frontend/public ./frontend/public
+COPY --from=frontend-builder /app/frontend/public* ./frontend/public/
 COPY --from=frontend-builder /app/frontend/node_modules ./frontend/node_modules
 COPY --from=frontend-builder /app/frontend/next.config.mjs ./frontend/
 
